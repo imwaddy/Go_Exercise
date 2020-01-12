@@ -1,2 +1,2 @@
 # Go_Exercise
-Golang Exercise
+This repository is for exercise purpose.
