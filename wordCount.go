@@ -19,6 +19,9 @@ import (
 	"sync"
 )
 
+// added mutex globally
+var mutex sync.Mutex
+
 func main() {
 
 	// For getting file names with URL
@@ -118,8 +121,6 @@ func GetFileData(url string, wg *sync.WaitGroup, MapofValues map[string]int, reg
 
 // InsertEntryInMap - entry for each word added to a map
 func InsertEntryInMap(word string, MapofValues map[string]int) {
-	// added mutex
-	var mutex sync.Mutex
 	//Lock map
 	mutex.Lock()
 	// check if key present in map or not
