@@ -1,4 +1,4 @@
-# Go_Exercise
-This repository is for exercise purpose.
+# TERMINAL_APPLICATION
+This folder contains stack and queue terminal application.
 
 See my blog https://medium.com/@mayurwadekar2/golangs-go-build-command-f471a5e8535d
