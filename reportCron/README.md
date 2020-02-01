@@ -3,6 +3,7 @@
 go build -ldflags="-X 'main.mainpackagevariable=main variable' -X 'cronjobs.otherpackagevariable=Other package variable'" main.go
 
 // right command
+
 go build -ldflags="-X 'main.mainpackagevariable=main variable' -X '<WORKSPACE_DIR>/reportCron/cronjobs.otherpackagevariable=Other package variable' " main.go
 
 
