@@ -16,7 +16,7 @@ func main() {
 	fmt.Scanf("%s", &stringToCheck)
 
 	// convert to lower case
-	stringToCheck = strings.ToLower(stringToCheck)
+	stringToCheck = strings.TrimSpace(strings.ToLower(stringToCheck))
 
 	// default consideration that string is palindrome
 	isPalindrome := true

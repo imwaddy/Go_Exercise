@@ -1,4 +1,4 @@
 # Go_Exercise
-This repository is for exercise purpose.
+This repository is for exercise purpose. Some folders contain blog related code which I have used to explain the things.
 
-See my blog https://medium.com/@mayurwadekar2/golangs-go-build-command-f471a5e8535d
+See my blogs https://medium.com/@mayurwadekar2/
