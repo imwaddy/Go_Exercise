@@ -31,6 +31,11 @@ func main() {
 		os.Exit(0)
 	}
 
+	if str == "" {
+		fmt.Errorf("Blank string is not allowed")
+		os.Exit(0)
+	}
+
 	// printing final output with title case
 	fmt.Println(GetReversedString(str))
 

@@ -15,6 +15,20 @@ func main() {
 	fmt.Print("Please Enter string==")
 	fmt.Scanf("%s", &stringToCheck)
 
+	// function call
+	isPalindrome(stringToCheck)
+
+}
+
+// isPalindrome checks string is palindrome or not
+func isPalindrome(stringToCheck string) {
+
+	// If string is blank
+	if stringToCheck == "" {
+		fmt.Println("String cannot be blank")
+		return
+	}
+
 	// convert to lower case
 	stringToCheck = strings.TrimSpace(strings.ToLower(stringToCheck))
 
@@ -51,5 +65,4 @@ func main() {
 	} else {
 		fmt.Println("String Is Not Palindrome")
 	}
-
 }
