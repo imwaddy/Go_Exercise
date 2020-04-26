@@ -5,6 +5,7 @@ This is simple example about how to create indexes using mongodb-golang official
 Platform:
 Go version: 1.10
 Mongo-Go driver version: 1.2.0
+MongoDB: 3.6.0
 
 
 
