@@ -1,3 +1,4 @@
+// Deprecated: use Go_Exercise/amazon-sqs-email/mod/v2 instead.
 module Go_Exercise/amazon-sqs-email
 
 go 1.17
