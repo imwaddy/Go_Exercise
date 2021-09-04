@@ -1,5 +1,4 @@
-//Deprecated: use github.com/imwaddy/Go_Exercise/v2 instead.
-module github.com/imwaddy/Go_Exercise
+module Go_Exercise/amazon-sqs-email
 
 go 1.17
 
