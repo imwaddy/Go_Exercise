@@ -1,0 +1,153 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"strconv"
+	"sync"
+	"time"
+
+	"github.com/xuri/excelize/v2"
+)
+
+// Employee represents an employee's details.
+type Employee struct {
+	ID            int       `json:"id"`
+	Age           int       `json:"age"`
+	Err           []error   // List of errors during processing.
+	DateOfJoining time.Time `json:"dateOfJoining"`
+	FirstName     string    `json:"firstName"`
+	LastName      string    `json:"lastName"`
+	Gender        string    `json:"gender"`
+	Country       string    `json:"country"`
+}
+
+// Job represents a job to be processed by a worker.
+type Job struct {
+	Row []string
+}
+
+var jobs chan Job
+var result chan Employee
+
+func main() {
+
+	var m runtime.MemStats
+
+	// Open the Excel file.
+	f, err := excelize.OpenFile("sample_employee.xlsx")
+	if err != nil {
+		fmt.Println("Error opening the Excel file:", err)
+		return
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			fmt.Println("Error closing the Excel file:", err)
+		}
+	}()
+
+	// Retrieve rows from the sheet.
+	rows, err := f.GetRows("Sheet1")
+	if err != nil {
+		fmt.Println("Error getting rows from the sheet:", err)
+		return
+	}
+
+	// Initialize channels for jobs and results.
+	jobs = make(chan Job, 10)
+	result = make(chan Employee, 10)
+
+	// Start the job preparation and result processing goroutines.
+	go prepareJobs(rows)
+	var ch = make(chan struct{})
+	go prepareResult(ch)
+
+	// Start worker goroutines to process jobs.
+	calculateDetails()
+
+	// Wait for result processing to complete.
+	<-ch
+
+	runtime.ReadMemStats(&m)
+	fmt.Printf("Alloc = %v MiB\n", m.Alloc/1024/1024)
+	fmt.Printf("TotalAlloc = %v MiB\n", m.TotalAlloc/1024/1024)
+	fmt.Printf("Sys = %v MiB\n", m.Sys/1024/1024)
+	fmt.Printf("NumGC = %v\n", m.NumGC)
+
+}
+
+// prepareJobs sends jobs to the jobs channel.
+func prepareJobs(rows [][]string) {
+	rows = rows[1:]
+	for _, row := range rows {
+		jobs <- Job{
+			Row: row,
+		}
+	}
+	close(jobs)
+}
+
+// prepareResult processes and prints the results.
+func prepareResult(ch chan struct{}) {
+	var count int
+	for i := range result {
+		count++
+		if i.Err != nil {
+			for _, e := range i.Err {
+				fmt.Println(e)
+			}
+			continue
+		}
+		fmt.Printf("%+v", i)
+		fmt.Println()
+	}
+	fmt.Println("Count ", count)
+	time.Sleep(time.Second * 100)
+	ch <- struct{}{}
+}
+
+// calculateDetails starts worker goroutines to process jobs.
+func calculateDetails() {
+	var wg sync.WaitGroup
+	for j := range jobs {
+		wg.Add(1)
+		go worker(&wg, j.Row)
+	}
+	wg.Wait()
+	close(result)
+}
+
+// worker processes a job and sends the result to the result channel.
+func worker(wg *sync.WaitGroup, row []string) {
+	defer wg.Done()
+
+	var errParsing []error
+	age, err := strconv.Atoi(row[5])
+	if err != nil {
+		fmt.Println("Error parsing age:", err)
+		errParsing = append(errParsing, err)
+	}
+	id, err := strconv.Atoi(row[7])
+	if err != nil {
+		fmt.Println("Error parsing id:", err)
+		errParsing = append(errParsing, err)
+	}
+	doj, err := time.Parse("02/01/2006", row[6])
+	if err != nil {
+		fmt.Println("Error parsing date of joining:", err)
+		errParsing = append(errParsing, err)
+	}
+
+	res := Employee{
+		ID:            id,
+		Age:           age,
+		FirstName:     row[1],
+		LastName:      row[2],
+		Gender:        row[3],
+		Country:       row[4],
+		DateOfJoining: doj,
+		Err:           errParsing,
+	}
+	result <- res
+}
