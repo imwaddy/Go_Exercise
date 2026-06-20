@@ -1,92 +1,93 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type LogDetails struct {
-	ServiceName             string    `json:"service_name"`
-	TotalRequests           int       `json:"total_requests"`
-	TotalResponseTimeInMs   float64   `json:"total_response_time_ms"`
-	AverageResponseTimeInMs float64   `json:"average_response_time_ms"`
-	MaximumResponseTimeInMs float64   `json:"maximum_response_time_ms"`
-	P95Latency              float64   `json:"p95_latency"`
-	ResponseTimesArray      []float64 `json:"response_times_array"`
+	ServiceName             string
+	TotalRequests           int
+	TotalResponseTimeInMs   float64
+	MaximumResponseTimeInMs float64
+	ResponseTimesArray      []float64
+}
+
+type parsedLog struct {
+	serviceName  string
+	responseTime float64
+}
+
+func parseAndSend(line string, ch chan<- parsedLog, wg *sync.WaitGroup) {
+	defer wg.Done()
+	row := strings.Split(line, " ")
+	if len(row) < 3 {
+		return
+	}
+	responseTime, err := strconv.ParseFloat(row[2], 64)
+	if err != nil {
+		return
+	}
+	ch <- parsedLog{serviceName: row[1], responseTime: responseTime}
 }
 
 func main() {
-	// var rows int
-	// fmt.Printf("Enter no of log rows:%d", &rows)
-	// var reader bytes.Buffer
-	// reader.ReadFrom(r)
+	fmt.Println("Enter the logs (Press Ctrl+D to end input):")
+	scanner := bufio.NewScanner(os.Stdin)
 
-	var logString = `100 auth 120
-	101 payment 300
-	102 auth 150
-	103 auth 200
-	104 payment 250
-	105 inventory 80
-	106 auth 110
-	107 payment 400
-	108 inventory 90
-	109 inventory 100
-	110 payment 350
-	111 auth 170`
+	ch := make(chan parsedLog)
+	var wg sync.WaitGroup
 
-	logs := strings.Split(logString, "\n")
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+		wg.Add(1)
+		go parseAndSend(line, ch, &wg)
+	}
 
-	response := make(map[string]LogDetails, 0)
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
 
-	for _, log := range logs {
-		row := strings.Split(log, " ")
-		rTime, _ := strconv.ParseFloat(row[2], 64)
-		val, ok := response[row[1]]
+	response := make(map[string]*LogDetails)
+	for p := range ch {
+		val, ok := response[p.serviceName]
 		if ok {
-			val.TotalResponseTimeInMs = getTotalResponseTime(val.TotalResponseTimeInMs, row[2])
-			val.MaximumResponseTimeInMs = getMaxResponseTime(val.MaximumResponseTimeInMs, row[2])
-			val.TotalRequests += 1
-			val.ResponseTimesArray = append(val.ResponseTimesArray, rTime)
-			// val.ResponseTimesArray =
-
-			response[row[1]] = val
-		} else {
-			object := LogDetails{
-				ServiceName:             row[1],
-				TotalRequests:           1,
-				TotalResponseTimeInMs:   rTime,
-				AverageResponseTimeInMs: 0,
-				MaximumResponseTimeInMs: rTime,
-				P95Latency:              0,
-				ResponseTimesArray:      append(val.ResponseTimesArray, rTime),
+			val.TotalResponseTimeInMs += p.responseTime
+			if p.responseTime > val.MaximumResponseTimeInMs {
+				val.MaximumResponseTimeInMs = p.responseTime
 			}
-			response[row[1]] = object
+			val.TotalRequests++
+			val.ResponseTimesArray = append(val.ResponseTimesArray, p.responseTime)
+		} else {
+			response[p.serviceName] = &LogDetails{
+				ServiceName:             p.serviceName,
+				TotalRequests:           1,
+				TotalResponseTimeInMs:   p.responseTime,
+				MaximumResponseTimeInMs: p.responseTime,
+				ResponseTimesArray:      []float64{p.responseTime},
+			}
 		}
 	}
 
+	fmt.Printf("%-12s %10s %12s %10s %10s\n", "SERVICE", "REQUESTS", "AVG(ms)", "MAX(ms)", "P95(ms)")
+	fmt.Println(strings.Repeat("-", 58))
+
 	for _, log := range response {
 		sort.Float64s(log.ResponseTimesArray)
-		var p95 = math.Ceil(0.95*float64(log.TotalRequests)) - 1
-		fmt.Printf("%s %d %.2f %.2f %.2f\n", log.ServiceName, log.TotalRequests, getAverageResponseTime(log), log.MaximumResponseTimeInMs, log.ResponseTimesArray[int(p95)])
+		p95idx := int(math.Ceil(0.95*float64(log.TotalRequests))) - 1
+		avg := log.TotalResponseTimeInMs / float64(log.TotalRequests)
+		fmt.Printf("%-12s %10d %12.2f %10.2f %10.2f\n",
+			log.ServiceName, log.TotalRequests, avg,
+			log.MaximumResponseTimeInMs, log.ResponseTimesArray[p95idx])
 	}
-}
-
-func getTotalResponseTime(RespTime float64, respTime string) float64 {
-	rTime, _ := strconv.ParseFloat(respTime, 64)
-	return RespTime + rTime
-}
-
-func getMaxResponseTime(maxRespTime float64, val string) float64 {
-	newRespTime, _ := strconv.ParseFloat(val, 64)
-	if maxRespTime < newRespTime {
-		return newRespTime
-	}
-	return maxRespTime
-}
-
-func getAverageResponseTime(log LogDetails) float64 {
-	return log.TotalResponseTimeInMs / float64(log.TotalRequests)
 }
