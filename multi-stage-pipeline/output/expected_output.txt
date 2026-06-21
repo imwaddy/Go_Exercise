@@ -1,0 +1,50 @@
+Workers: validate=2 | enrich=3 | aggregate=2 | Timeout: 5s
+
+Records loaded: 15
+
+Validation log:
+[validate] PASS r1   electronics  amount=299.99  qty=2
+[validate] PASS r2   clothing     amount=49.99   qty=3
+[validate] PASS r3   food         amount=12.50   qty=5
+[validate] PASS r4   books        amount=19.99   qty=1
+[validate] DROP r5   gadgets      reason=invalid_category
+[validate] DROP r6   electronics  reason=amount_must_be_positive
+[validate] PASS r7   clothing     amount=89.99   qty=2
+[validate] DROP r8   ""           reason=invalid_category
+[validate] PASS r9   food         amount=8.75    qty=10
+[validate] PASS r10  books        amount=34.99   qty=2
+[validate] PASS r11  electronics  amount=149.00  qty=1
+[validate] PASS r12  clothing     amount=25.00   qty=4
+[validate] PASS r13  food         amount=5.99    qty=8
+[validate] DROP r14  ""           reason=missing_id
+[validate] PASS r15  electronics  amount=499.00  qty=3
+
+Enrich log (score = amount*0.4 + quantity*0.6):
+[enrich] r1   score=121.20   (299.99*0.4 + 2*0.6)
+[enrich] r2   score=21.60    (49.99*0.4  + 3*0.6)
+[enrich] r3   score=8.00     (12.50*0.4  + 5*0.6)
+[enrich] r4   score=8.60     (19.99*0.4  + 1*0.6)
+[enrich] r7   score=37.20    (89.99*0.4  + 2*0.6)
+[enrich] r9   score=9.50     (8.75*0.4   + 10*0.6)
+[enrich] r10  score=15.20    (34.99*0.4  + 2*0.6)
+[enrich] r11  score=60.20    (149.00*0.4 + 1*0.6)
+[enrich] r12  score=12.40    (25.00*0.4  + 4*0.6)
+[enrich] r13  score=7.20     (5.99*0.4   + 8*0.6)
+[enrich] r15  score=201.40   (499.00*0.4 + 3*0.6)
+
+=== Pipeline Summary ===
+Records loaded   : 15
+Records dropped  : 4
+Records processed: 11
+Wall time        : ~310ms
+
+Category Breakdown:
+  electronics  count=3  total_score=382.80  avg_score=127.60
+  clothing     count=3  total_score=71.20   avg_score=23.73
+  food         count=3  total_score=24.70   avg_score=8.23
+  books        count=2  total_score=23.80   avg_score=11.90
+
+Note:
+- Worker assignment is non-deterministic; log order may differ.
+- Wall time is approximate; depends on machine and scheduler.
+- score values rounded to 2 decimal places in output.

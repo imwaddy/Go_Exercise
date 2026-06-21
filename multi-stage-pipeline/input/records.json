@@ -1,0 +1,17 @@
+[
+  { "id": "r1",  "category": "electronics", "amount": 299.99, "quantity": 2 },
+  { "id": "r2",  "category": "clothing",    "amount": 49.99,  "quantity": 3 },
+  { "id": "r3",  "category": "food",        "amount": 12.50,  "quantity": 5 },
+  { "id": "r4",  "category": "books",       "amount": 19.99,  "quantity": 1 },
+  { "id": "r5",  "category": "gadgets",     "amount": 99.99,  "quantity": 1 },
+  { "id": "r6",  "category": "electronics", "amount": 0,      "quantity": 2 },
+  { "id": "r7",  "category": "clothing",    "amount": 89.99,  "quantity": 2 },
+  { "id": "r8",  "category": "",            "amount": 15.00,  "quantity": 3 },
+  { "id": "r9",  "category": "food",        "amount": 8.75,   "quantity": 10 },
+  { "id": "r10", "category": "books",       "amount": 34.99,  "quantity": 2 },
+  { "id": "r11", "category": "electronics", "amount": 149.00, "quantity": 1 },
+  { "id": "r12", "category": "clothing",    "amount": 25.00,  "quantity": 4 },
+  { "id": "r13", "category": "food",        "amount": 5.99,   "quantity": 8 },
+  { "id": "",    "category": "books",       "amount": 9.99,   "quantity": 1 },
+  { "id": "r15", "category": "electronics", "amount": 499.00, "quantity": 3 }
+]
