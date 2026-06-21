@@ -2,27 +2,26 @@ package main
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
-	"time"
 
 	excelize "github.com/xuri/excelize/v2"
 )
 
-var mutex *sync.Mutex
-var rowsread = -1
 var fileName = "Book-1.xlsx"
-var start, end int
+
+type workerResult struct {
+	id   int
+	rows [][]string
+}
 
 func main() {
-
-	// openFile(fileName)
-
 	f, err := excelize.OpenFile(fileName)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	defer f.Close()
 
 	rows, err := f.GetRows("Sheet1")
@@ -32,51 +31,61 @@ func main() {
 	}
 
 	const numJobs = 2
-	jobs := make(chan int, numJobs)
-	results := make(chan [][]string, numJobs)
+	jobs := make(chan [][]string, numJobs)
+	results := make(chan workerResult, numJobs)
 
-	r := len(rows) / numJobs
-	start = 1
-	end = r + 1
-
+	var wg sync.WaitGroup
 	for w := 1; w <= numJobs; w++ {
-		go worker(w, jobs, results, rows[start:end])
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			worker(id, jobs, results)
+		}(w)
 	}
 
-	for j := 1; j <= numJobs; j++ {
-		jobs <- j
-		fmt.Println("jobs ", <-results)
-		// process(<-results)
+	chunkSize := len(rows) / numJobs
+	for i := 0; i < numJobs; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+		if i == numJobs-1 {
+			end = len(rows)
+		}
+		jobs <- rows[start:end]
 	}
 	close(jobs)
 
-	for a := 1; a <= numJobs; a++ {
-		// fmt.Println(<-results)
-		process(<-results)
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	collected := make([]workerResult, 0, numJobs)
+	for result := range results {
+		collected = append(collected, result)
 	}
 
-	time.Sleep(5 * time.Second)
+	sort.Slice(collected, func(i, j int) bool {
+		return collected[i].id < collected[j].id
+	})
 
-}
-
-func worker(id int, jobs <-chan int, results chan<- [][]string, input [][]string) {
-	fmt.Println("input ", input)
-	for w, _ := range jobs {
-		if w != 1 {
-			start = end
-			end += r
+	for i, result := range collected {
+		if i > 0 {
+			fmt.Println()
 		}
-		fmt.Println("Start : ", start)
-		fmt.Println("End : ", end)
-		work(results, input)
+		process(result)
 	}
 }
 
-func work(results chan<- [][]string, input [][]string) {
-	// getExcelRows()
-	results <- input
+func worker(id int, jobs <-chan [][]string, results chan<- workerResult) {
+	for input := range jobs {
+		fmt.Printf("Worker %d processing %d rows\n", id, len(input))
+		results <- workerResult{id: id, rows: input}
+	}
 }
 
-func process(s [][]string) {
-	fmt.Println(s)
+func process(r workerResult) {
+	fmt.Printf("Worker %d:\n", r.id)
+	for _, row := range r.rows {
+		fmt.Println(" ", strings.Join(row, "\t"))
+	}
 }
