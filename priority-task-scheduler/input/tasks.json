@@ -1,0 +1,12 @@
+[
+  { "id": "t1", "name": "Send Email",        "priority": 3, "duration_ms": 200 },
+  { "id": "t2", "name": "Generate Report",   "priority": 1, "duration_ms": 500 },
+  { "id": "t3", "name": "Sync Database",     "priority": 2, "duration_ms": 300 },
+  { "id": "t4", "name": "Cleanup Logs",      "priority": 5, "duration_ms": 100 },
+  { "id": "t5", "name": "Send SMS",          "priority": 3, "duration_ms": 150 },
+  { "id": "t6", "name": "Backup Files",      "priority": 1, "duration_ms": 800 },
+  { "id": "t7", "name": "Health Check",      "priority": 4, "duration_ms":  50 },
+  { "id": "t8", "name": "Index Rebuild",     "priority": 2, "duration_ms": 600 },
+  { "id": "t9", "name": "Cache Warm-up",     "priority": 4, "duration_ms": 120 },
+  { "id": "t10","name": "Audit Trail Write", "priority": 2, "duration_ms": 250 }
+]

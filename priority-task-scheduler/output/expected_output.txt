@@ -1,0 +1,25 @@
+Expected execution order (priority 1 = highest, 5 = lowest):
+Workers: 3 | Timeout: 3s
+
+Execution log (worker ID, task ID, task name, start_time_offset_ms, status):
+[worker-*] t2  "Generate Report"   ~0ms    completed
+[worker-*] t6  "Backup Files"      ~0ms    completed
+[worker-*] t3  "Sync Database"     ~0ms    completed
+[worker-*] t8  "Index Rebuild"     ~300ms  completed
+[worker-*] t10 "Audit Trail Write" ~500ms  completed
+[worker-*] t1  "Send Email"        ~500ms  completed
+[worker-*] t5  "Send SMS"          ~700ms  completed
+[worker-*] t7  "Health Check"      ~800ms  completed
+[worker-*] t9  "Cache Warm-up"     ~800ms  completed
+[worker-*] t4  "Cleanup Logs"      ~850ms  completed
+
+Summary:
+  Total tasks    : 10
+  Completed      : 10
+  Failed/Timeout : 0
+  Total wall time: ~900ms (3 workers in parallel)
+
+Note:
+- worker-* means any worker can pick up a task (non-deterministic assignment).
+- Tasks with same priority execute in arrival order (FIFO tiebreak).
+- start_time_offset_ms is approximate; depends on when worker becomes free.

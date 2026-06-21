@@ -1,3 +1,3 @@
-module Go_Exercise/concurrent-log-processor
+module github.com/imwaddy/Go_Exercise
 
-go 1.26.1
+go 1.26.3
