@@ -70,7 +70,6 @@ func merge(ctx context.Context, streams ...<-chan int) <-chan int {
 		h := &MinHeap{}
 		heap.Init(h)
 
-		// seed heap — first value from each stream
 		for _, ch := range streams {
 			select {
 			case v, ok := <-ch:
@@ -91,7 +90,6 @@ func merge(ctx context.Context, streams ...<-chan int) <-chan int {
 				return
 			}
 
-			// refill from same channel
 			select {
 			case v, ok := <-item.ch:
 				if ok {
