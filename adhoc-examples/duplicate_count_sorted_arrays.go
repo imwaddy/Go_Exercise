@@ -9,7 +9,7 @@ func dedupCount() [][]int {
 	result := make([][]int, 0)
 	start := 0
 
-	for end := 1; end < len(nums); end++ {
+	for end := 0; end <= len(nums)-1; end++ {
 		if nums[end] != nums[start] {
 			result = append(result, []int{nums[start], end - start})
 			start = end
